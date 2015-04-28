@@ -1,5 +1,7 @@
 require 'sinatra'
 require 'erb'
+require 'pg'
+require 'json'
 
 set :bind, '0.0.0.0'
 
@@ -8,10 +10,16 @@ get '/' do
 end
 
 post '/login' do
-  if ((params[:username] == 'user@example.org') && (params[:password] = 'password'))
-    redirect '/menu'
-  elsif (params[:username] == 'blocked@example.org')
-    redirect '/blocked'
+
+  conn = PGconn.connect("localhost", 5432, '', '', "test", "postgres", "admin")
+  res  = conn.exec('SELECT * from "users" where user_name = \'' + params[:username] + '\' and user_password= \'' + params[:password] + '\' ')
+
+  if res.length > 0 then
+    if (res[0]['user_status'] == 0)
+      redirect '/menu'
+    else
+      redirect '/blocked'
+    end
   else
     redirect '/unknown'
   end
@@ -52,4 +60,37 @@ end
 
 get '/form-details' do
   erb :form
+end
+
+get '/get_user/:user_id' do
+  conn = PGconn.connect("localhost", 5432, '', '', "test", "postgres", "admin")
+  res  = conn.exec('SELECT * from "users" where user_id = \'' + params['user_id'] + '\' ')
+
+  result = {}
+  if res.count > 0 then
+    result['user_name'] = res[0]['user_name']
+    result['user_id'] = res[0]['user_id']
+    result['user_status'] = res[0]['user_status']
+  else
+    result['status'] = 'No User'
+  end
+  return result.to_json
+end
+
+post '/add_user' do
+
+  conn = PGconn.connect("localhost", 5432, '', '', "test", "postgres", "admin")
+  res  = conn.exec('SELECT * from "users" where user_name = \'' + params['user_name'] + '\' ')
+
+  result = {}
+  if res.count > 0 then
+    result['status'] = 'User Already Exists'
+  else
+    conn = PGconn.connect("localhost", 5432, '', '', "test", "postgres", "admin")
+    res  = conn.exec('insert into users (user_name, user_password) Values (\'' + params['user_name'] + '\', \'' + params['user_password'] + '\')  ')
+
+    result['status'] = 'User Added'
+  end
+
+  return result.to_json
 end
