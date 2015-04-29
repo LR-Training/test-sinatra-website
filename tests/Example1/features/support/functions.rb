@@ -1,8 +1,3 @@
-require 'open-uri'
-require 'net/http'
-require 'rspec/expectations'
-require 'json'
-
 #######
 # Function: rest_get_call
 # Description: This function should be used to do all get requests

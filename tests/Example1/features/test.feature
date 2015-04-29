@@ -1,4 +1,4 @@
-Feature: Create User to test site
+Feature: Create User on test site
 
 Scenario: Create new user that doesn't exist
 When I create a user

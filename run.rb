@@ -14,11 +14,12 @@ post '/login' do
   conn = PGconn.connect("localhost", 5432, '', '', "test", "postgres", "admin")
   res  = conn.exec('SELECT * from "users" where user_name = \'' + params[:username] + '\' and user_password= \'' + params[:password] + '\' ')
 
-  if res.length > 0 then
-    if (res[0]['user_status'] == 0)
-      redirect '/menu'
-    else
+  if res.count > 0 then
+    puts res[0]['user_status']
+    if (res[0]['user_status'] == 1)
       redirect '/blocked'
+    else
+      redirect '/menu'
     end
   else
     redirect '/unknown'
